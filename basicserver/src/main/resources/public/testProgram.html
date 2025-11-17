@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chatroom</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #chat-container {
+            width: 400px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        #chat-header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        #chat {
+            height: 300px;
+            padding: 10px;
+            overflow-y: scroll;
+            border-bottom: 1px solid #ccc;
+        }
+
+        #chat div {
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        #chat div:nth-child(odd) {
+            background-color: #e1e1e1;
+        }
+
+        #message-container {
+            display: flex;
+            padding: 10px;
+        }
+
+        #message {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #send {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #send:hover {
+            background-color: #0056b3;
+        }
+
+        #username-container,
+        #ip-container {
+            display: flex;
+            padding: 10px;
+            justify-content: center;
+        }
+
+        #username,
+        #ip {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chat-container">
+        <div id="chat-header">Chatroom</div>
+        <div id="chat"></div>
+        <div id="ip-container">
+            <input type="text" id="ip" placeholder="Enter server IP address">
+        </div>
+        <div id="username-container">
+            <input type="text" id="username" placeholder="Enter your username">
+        </div>
+        <div id="message-container">
+            <input type="text" id="message" placeholder="Type a message">
+            <button id="send">Send</button>
+        </div>
+    </div>
+
+    <script>
+        var count = 0;
+        document.getElementById('send').addEventListener('click', function () {
+            const ip = document.getElementById('ip').value || window.location.hostname;
+            const username = document.getElementById('username').value || 'Anonymous';
+            const message = document.getElementById('message').value;
+
+            document.getElementById('message').value = '';
+
+            if (message.trim() !== '') {
+                fetch(`http://${ip}:4567/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: username, message: message })
+                });
+            }
+        });
+
+        function getRandomColor(s) {
+            let hash = 0;
+            for (let i = 0; i < s.length; i++) {
+                hash = s.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            let color = (hash & 0x00FFFFFF)
+                .toString(16)
+                .toUpperCase();
+
+            // Ensure the color is 6 characters long
+            color = '000000'.substring(0, 6 - color.length) + color;
+
+            // Convert to RGB and brighten the color
+            let r = parseInt(color.substring(0, 2), 16);
+            let g = parseInt(color.substring(2, 4), 16);
+            let b = parseInt(color.substring(4, 6), 16);
+
+            // Increase brightness by adding a fixed value to each component
+            r = Math.min(255, r + 70);
+            g = Math.min(255, g + 70);
+            b = Math.min(255, b + 70);
+
+            // Convert back to hex
+            color = ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+
+            return '#' + color;
+        }
+
+        function fetchMessages() {
+            const ip = document.getElementById('ip').value || window.location.hostname;
+            fetch(`http://${ip}:4567/messages`)
+                .then(response => response.json())
+                .then(data => {
+                    var oldCount = count;
+                    count = 0;
+                    const chat = document.getElementById('chat');
+                    chat.innerHTML = '';
+                    data.forEach(msg => {
+                        count++;
+                        const message = document.createElement('div');
+                        message.textContent = `${msg.username}: ${msg.message}`;
+                        message.style.backgroundColor = getRandomColor(msg.username);
+                        chat.appendChild(message);
+                    });
+                    if(oldCount != count) {
+                        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        setInterval(fetchMessages, 1000);
+    </script>
+</body>
+
+</html>
