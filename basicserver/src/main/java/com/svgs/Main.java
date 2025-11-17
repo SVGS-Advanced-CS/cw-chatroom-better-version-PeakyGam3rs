@@ -1,10 +1,15 @@
 package com.svgs;
 
-import static spark.Spark.*;
+import static spark.Spark.before;
+import static spark.Spark.get;
+import static spark.Spark.options;
+import static spark.Spark.port;
 
 public class Main {
 
     public static void main(String[] args) {
+        port(1885);
+        get("/test", (req, res) -> "<b><i>This is a test!</i></b>");
         disableCORS();
 
         
