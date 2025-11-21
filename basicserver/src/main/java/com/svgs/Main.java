@@ -1,6 +1,7 @@
 package com.svgs;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.google.gson.Gson;
 
@@ -13,7 +14,7 @@ import static spark.Spark.staticFiles;
 
 public class Main {
     private static Gson gson = new Gson();
-    private static ArrayList<Message> messages = new ArrayList<>();
+    private static List<Message> messages = new CopyOnWriteArrayList<>();
 
     public static void main(String[] args) {
         port(4567);
